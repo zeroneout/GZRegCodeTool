@@ -26,14 +26,6 @@
 2. 双击运行，在「序号：」框输入 8 位数字，点击「转换」（或直接回车）。
 3. 结果出现在右侧结果框，双击结果框即可复制到剪贴板。
 
-示例：
-
-| 输入序号 | 转换结果 |
-|---------|---------|
-| `71179664` | `9133CK6CK9` |
-| `56565656` | `9V63C631V9` |
-| `12345678` | `3CP9396P99` |
-
 ---
 
 ## 构建方法
@@ -70,25 +62,6 @@ clang -Os -s -static -nostartfiles -mwindows ^
 ```bat
 python3 gen_icon.py
 ```
-
----
-
-## 算法说明
-
-转换基于一张固定的查找表 `TBL = "9C1VKP36"`，将输入数字反复对 8 取模得到索引，共迭代 10 次：
-
-```c
-static void reg_code(int serial, wchar_t out[11]) {
-    static const char TBL[] = "9C1VKP36";
-    for (int i = 0; i < 10; i++) {
-        out[i] = (wchar_t)TBL[serial % 8];
-        serial /= 8;
-    }
-    out[10] = L'\0';
-}
-```
-
-> 注意：输出结果仅由 `TBL` 表中的字符 `9 C 1 V K P 3 6` 组成。
 
 ---
 
