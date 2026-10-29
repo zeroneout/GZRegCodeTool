@@ -1,0 +1,9 @@
+#define IDI_APPICON 100
+#define RT_MANIFEST 24
+#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
+
+// 应用图标（标题栏与任务栏显示）
+IDI_APPICON ICON "appicon.ico"
+
+// DPI 感知清单，高分屏下界面不模糊
+CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"
