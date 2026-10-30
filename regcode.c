@@ -4,10 +4,9 @@
 // 说明: 全程使用 W(宽字符/Unicode) 版 API 与 L"..." 字面量，避免 ANSI 代码页导致的乱码。
 #include <windows.h>
 
-// 不链接 C 运行时（msvcrt），自行提供 memcpy/memset，避免引入 UCRT
-//（api-ms-win-crt-* 系列转发 DLL 在 Windows 7 上不存在，会导致程序无法启动）。
-// 其余字符串/内存函数（lstrcpyW/lstrcpynW/lstrlenW 等）本就走系统 kernel32 API。
-// 最终依赖仅 GDI32/KERNEL32/USER32 这三个系统自带 DLL，Win7~Win11 均可直接运行。
+// 本工具链默认链接 UCRT（api-ms-win-crt-*），而 Windows 7 上没有这些 DLL，
+// 故不链接 C 运行时，自行提供 memcpy/memset；其余字符串/内存函数走 kernel32。
+// 这样 exe 只依赖 GDI32/KERNEL32/USER32 三个系统自带 DLL，Win7~Win11 均可运行。
 void* memcpy(void* dst, const void* src, size_t n)
 {
     unsigned char* d = (unsigned char*)dst;
@@ -281,7 +280,7 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
         // 限制最多 8 位数字（配合 ES_NUMBER，超出直接输不进去）
         SendMessageW(g_hInput, EM_LIMITTEXT, 8, 0);
         g_hLblResult  = mk(hWnd, L"STATIC", L"结果：", WS_CHILD | WS_VISIBLE, 0, 0, 10, 10, NULL);
-        g_hBtnConvert = mk(hWnd, L"BUTTON", L"转换", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, 0, 0, 10, 10, BTN(BTN_CONVERT));
+        g_hBtnConvert = mk(hWnd, L"BUTTON", L"转换", WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON, 0, 0, 10, 10, BTN(BTN_CONVERT));
         g_hBtnAbout   = mk(hWnd, L"BUTTON", L"关于", WS_CHILD | WS_VISIBLE, 0, 0, 10, 10, BTN(BTN_ABOUT));
         g_hBtnExit    = mk(hWnd, L"BUTTON", L"退出", WS_CHILD | WS_VISIBLE, 0, 0, 10, 10, BTN(BTN_EXIT));
 
@@ -405,13 +404,12 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPara
     return DefWindowProcW(hWnd, msg, wParam, lParam);
 }
 
-// 自定义程序入口：不使用 C 运行时（CRT）启动代码，从而把体积压到最小。
-// hInstance 通过 GetModuleHandleW 取得；所有用到的字符串/内存函数均改为系统 API，
-// 因此除操作系统自带的 kernel32/user32/gdi32 外，不引入任何额外依赖。
+// 自定义入口（不依赖 CRT 启动代码，避免 UCRT 依赖）：入口固定为 app_entry。
 void app_entry(void)
 {
     HINSTANCE hInst = GetModuleHandleW(NULL);
     g_hInst = hInst;   // 记录模块句柄，供关于框注册窗口类 / 加载图标使用
+    SetProcessDPIAware();   // 无 manifest 时仍声明 DPI 感知，保证高分屏文字清晰
 
     static const wchar_t CLASS[] = L"RegCodeToolW";
     WNDCLASSW wc;
