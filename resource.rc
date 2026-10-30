@@ -1,9 +1,9 @@
 #define IDI_APPICON 100
-#define RT_MANIFEST 24
-#define CREATEPROCESS_MANIFEST_RESOURCE_ID 1
 
 // 应用图标（标题栏与任务栏显示）
 IDI_APPICON ICON "appicon.ico"
 
-// DPI 感知清单，高分屏下界面不模糊
-CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "app.manifest"
+// 说明：不再嵌入 manifest。
+// 之前嵌入 manifest（即使已删除所有外部依赖）在部分 Windows 7 上仍会触发
+// “应用程序的并行配置不正确”(Side-by-Side) 而无法启动。
+// 改为完全不带 manifest，DPI 感知由代码中的 SetProcessDPIAware() 负责。
