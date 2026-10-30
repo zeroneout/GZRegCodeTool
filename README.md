@@ -1,6 +1,6 @@
 # 工资序号转换工具
 
-一个用 **纯 C + Win32 API** 编写的极简序号转换小工具，单文件 `regcode.exe` 仅约 **13.5 KB**，零依赖，支持 **Windows 7 ~ Windows 11**。
+一个用 **纯 C + Win32 API** 编写的极简序号转换小工具，单文件 `regcode.exe` 约 **30 KB**，仅依赖系统自带 DLL，支持 **Windows 7 ~ Windows 11**。
 
 > 输入 8 位数字序号，点击「转换」即可得到对应的 10 位转换码。
 
@@ -8,7 +8,7 @@
 
 ## 功能特性
 
-- **极简体积**：纯 Win32 实现，静态编译，单文件 13.5 KB，无需任何运行库。
+- **零外部依赖**：纯 Win32 实现，仅依赖系统自带的 GDI32 / KERNEL32 / USER32，无需任何运行库，Win7 亦可直接运行。
 - **输入即转换**：输入框限制 8 位数字（`ES_NUMBER` + 限长），输满后按 **回车** 直接转换。
 - **输出框自绘**：结果框由程序自绘（白底 + 凹陷边框 + 居中文字），彻底避免系统编辑框在连续转换时的文字叠加/压字问题。
 - **一键复制**：
@@ -46,16 +46,20 @@
 build.bat
 ```
 
-`build.bat` 内部执行的编译命令如下（已做体积优化）：
+`build.bat` 内部执行的编译命令如下（常规 `-O2` 优化，不做体积裁剪）：
 
 ```bat
 windres resource.rc -O coff -o resource.o
-clang -Os -s -static -nostartfiles -mwindows ^
-      -ffunction-sections -fdata-sections ^
-      -Wl,--gc-sections -Wl,-e,app_entry ^
+clang -O2 -mwindows -nostartfiles -static -Wl,-e,app_entry ^
       regcode.c resource.o -o regcode.exe ^
       -lgdi32 -luser32 -lkernel32
 ```
+
+> 说明：
+> - **不链接 CRT**（`-nostartfiles` + 自定义入口 `app_entry`），避免引入本工具链默认的 UCRT
+>   （`api-ms-win-crt-*.dll`，Win7 上不存在）。
+> - **不嵌入 manifest**：部分 Windows 7 环境会因 manifest 报“应用程序的并行配置不正确”
+>   （Side-by-Side），去掉 manifest 可彻底规避；DPI 感知改由代码 `SetProcessDPIAware()` 保证。
 
 也可重新生成应用图标：
 
@@ -73,7 +77,6 @@ python3 gen_icon.py
 | `build.bat`   | 一键编译脚本 |
 | `gen_icon.py` | 应用图标生成脚本（粉嫩可爱风格） |
 | `resource.rc` | 资源描述（图标） |
-| `app.manifest`| DPI 感知清单 |
 | `appicon.ico` | 应用图标 |
 | `regcode.exe` | 编译产物（Release 附件中提供） |
 
