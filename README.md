@@ -79,9 +79,11 @@ python3 gen_icon.py
 | `resource.rc` | 资源描述（图标） |
 | `appicon.ico` | 应用图标 |
 | `regcode.exe` | 编译产物（Release 附件中提供） |
+| `LICENSE`     | 开源许可证（MIT） |
+| `CHANGELOG.md`| 更新日志 |
 
 ---
 
 ## 许可证
 
-本工具仅供学习与交流使用。
+本项目基于 [MIT License](LICENSE) 开源，可自由使用、修改与分发，请保留版权声明。
